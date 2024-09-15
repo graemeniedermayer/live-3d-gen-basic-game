@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!-- isn't used for my server  -->
+<html>
+<head>
+  <title>Char Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="./base.css" />
+
+  <!-- not current uused -->
+  <script id="vertexDissolveShader" src="./shader/vertexDissolve.glsl" type="x-shader/x-vertex"></script>
+  <script id="fragmentDissolveShader" src="./shader/fragmentDissolve.glsl" type="x-shader/x-fragment"></script>
+
+  <!-- TODO optimize CDNs -->
+  <!-- TODO this should be bundled with webpack (or other) -->
+  <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.168.0/three.module.js",
+            "@pmndrs/uikit":"https://www.unpkg.com/@pmndrs/uikit@0.3.12/dist/index.js",
+            "@preact/signals-core":"https://cdn.skypack.dev/@preact/signals-core",
+            "yoga-layout/load":"https://unpkg.com/yoga-layout@3.1.0/dist/src/load.js",
+            "three/src/math/MathUtils.js":"https://unpkg.com/three@0.166.0/src/math/MathUtils.js",
+            "three/examples/jsm/loaders/SVGLoader.js":"https://unpkg.com/three@0.166.0/examples/jsm/loaders/SVGLoader.js",
+            "xrbutton": "https://cdn.jsdelivr.net/npm/three@0.166.0/examples/jsm/webxr/XRButton.js",
+            "XRControllerModelFactory":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/webxr/XRControllerModelFactory.js",
+            "SkeletonUtils": "https://unpkg.com/three@0.166.0/examples/jsm/utils/SkeletonUtils.js",
+            "three/examples/jsm/loaders/GLTFLoader.js":"https://unpkg.com/three@0.166.0/examples/jsm/loaders/GLTFLoader.js"
+        }
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/gh/kripken/ammo.js@HEAD/builds/ammo.js"></script>  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
+<script src="./main.js" type="module"></script>
+  
+</head>
+
+  <div id=ip_form>
+    <div id="div1">
+      <div class="title">
+        Server Settings
+      </div>
+      <div class="small">
+        auto1111 (IP or gradio share)
+      </div>
+      <input type="text" id="ip">
+      <!-- <div class="small">
+        gradio username
+      </div> -->
+      <!-- <input class='input' type="text" id="gradiousername">
+      <div class="small">
+        gradio password
+      </div>
+      <input class="input" type="password" id="gradiopassword"> -->
+      <input class="input" id="button" value="set server" style="text-align: center;">
+    </div>
+
+  </div>
+  <!-- <script src="https://cdn.jsdelivr.net/gh/kripken/ammo.js@HEAD/builds/ammo.js"></script> -->
+  <body style="margin: 0;">
+    <!-- for raycasting -->
+    <div id='raycasting_element' style="position:absolute; height:100%; width:100%;" disabled></div>
+    <canvas id="root" style="width: 100dvw; height: 100dvh;" disabled></canvas>
+
+    <div id='controller'>
+      <div id="movement">
+        <div class="controls" id="movepad"></div>
+        <div class="controls" id="movepad-indicator"></div>
+      </div>
+
+        <div id="action">
+
+        <div class="controls" id="button1"></div>
+        <div id="shift-control"></div>
+      </div>
+    </div>
+  </body>
+  </html>

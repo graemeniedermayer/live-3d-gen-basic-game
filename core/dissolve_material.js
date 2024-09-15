@@ -1,0 +1,202 @@
+let _FS = `
+uniform float uTime;
+uniform mat4 uMatrix;
+uniform float uFeather;
+uniform float uThickness;
+uniform sampler2D uRamp;
+uniform vec3 uColor;
+#define MAX_FBM_ITERATIONS 30
+#define gln_PI 3.1415926538
+vec4 _permute(vec4 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+vec4 _taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+
+struct gln_tFBMOpts {
+  float seed;
+  float persistance;
+  float lacunarity;
+  float scale;
+  float redistribution;
+  int octaves;
+  bool terbulance;
+  bool ridge;
+};
+     
+float sdfBox(vec3 p, vec3 b) {
+  vec3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+vec3 transform(vec3 p) {
+  return (inverse(uMatrix) * vec4(p, 1.0)).xyz;
+}
+float gln_normalize(float v) { return gln_map(v, -1.0, 1.0, 0.0, 1.0); }
+float gln_simplex(vec3 v) {
+    const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+    
+      // First corner
+    vec3 i = floor(v + dot(v, C.yyy));
+    vec3 x0 = v - i + dot(i, C.xxx);
+    
+      // Other corners
+    vec3 g = step(x0.yzx, x0.xyz);
+    vec3 l = 1.0 - g;
+    vec3 i1 = min(g.xyz, l.zxy);
+    vec3 i2 = max(g.xyz, l.zxy);
+    
+    //  x0 = x0 - 0. + 0.0 * C
+    vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+    vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+    vec3 x3 = x0 - 1. + 3.0 * C.xxx;
+    
+    // Permutations
+    i = mod(i, 289.0);
+    vec4 p = _permute(_permute(_permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y +
+                               vec4(0.0, i1.y, i2.y, 1.0)) +
+                      i.x + vec4(0.0, i1.x, i2.x, 1.0));
+    
+    // Gradients
+    // ( N*N points uniformly over a square, mapped onto an octahedron.)
+    float n_ = 1.0 / 7.0; // N=7
+    vec3 ns = n_ * D.wyz - D.xzx;
+    
+    vec4 j = p - 49.0 * floor(p * ns.z * ns.z); //  mod(p,N*N)
+    
+    vec4 x_ = floor(j * ns.z);
+    vec4 y_ = floor(j - 7.0 * x_); // mod(j,N)
+    
+    vec4 x = x_ * ns.x + ns.yyyy;
+    vec4 y = y_ * ns.x + ns.yyyy;
+    vec4 h = 1.0 - abs(x) - abs(y);
+    
+    vec4 b0 = vec4(x.xy, y.xy);
+    vec4 b1 = vec4(x.zw, y.zw);
+    
+    vec4 s0 = floor(b0) * 2.0 + 1.0;
+    vec4 s1 = floor(b1) * 2.0 + 1.0;
+    vec4 sh = -step(h, vec4(0.0));
+    
+    vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+    vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+    
+    vec3 p0 = vec3(a0.xy, h.x);
+    vec3 p1 = vec3(a0.zw, h.y);
+    vec3 p2 = vec3(a1.xy, h.z);
+    vec3 p3 = vec3(a1.zw, h.w);
+    
+    // Normalise gradients
+    vec4 norm =
+        _taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+    p0 *= norm.x;
+    p1 *= norm.y;
+    p2 *= norm.z;
+    p3 *= norm.w;
+      
+    // Mix final noise value
+    vec4 m =
+        max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+    m = m * m;
+    return 42.0 *
+           dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+float gln_sfbm(vec3 v, gln_tFBMOpts opts) {
+  v += (opts.seed * 100.0);
+  float persistance = opts.persistance;
+  float lacunarity = opts.lacunarity;
+  float redistribution = opts.redistribution;
+  int octaves = opts.octaves;
+  bool terbulance = opts.terbulance;
+  bool ridge = opts.terbulance && opts.ridge;
+    
+  float result = 0.0;
+  float amplitude = 1.0;
+  float frequency = 1.0;
+  float maximum = amplitude;
+    
+  for (int i = 0; i < MAX_FBM_ITERATIONS; i++) {
+    if (i >= octaves)
+      break;
+    
+    vec3 p = v * frequency * opts.scale;
+      
+    float noiseVal = gln_simplex(p);
+      
+    if (terbulance)
+      noiseVal = abs(noiseVal);
+      
+    if (ridge)
+      noiseVal = -1.0 * noiseVal;
+      
+    result += noiseVal * amplitude;
+    
+    frequency *= lacunarity;
+    amplitude *= persistance;
+    maximum += amplitude;
+  }
+    
+  float redistributed = pow(result, redistribution);
+  return redistributed / maximum;
+}
+
+    
+void main() {
+  gln_tFBMOpts opts = gln_tFBMOpts(1.0, 0.3, 2.0, 5.0, 1.0, 5, false, false);
+  float noise = gln_sfbm(vPosition, opts);
+  noise = gln_normalize(noise);
+  vec3 transformed = transform(vPosition);
+  float distance = smoothstep(0.0, uFeather, sdfBox(transformed, vec3(0.75)));
+  float progress = distance;
+  float alpha = step(1.0 - progress, noise);
+  float border = step((1.0 - progress) - uThickness, noise) - alpha;
+  gl_FragColor.a = alpha + border;
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, uColor, border);
+}`
+
+let _VS = `
+varying vec2 vUv;
+varying vec3 vPosition;
+
+void main() {
+  custom_vUv = uv;
+  custom_vPosition = position;
+}`
+uniforms = {
+    uTime: {
+        value: 0
+    },
+    uFeather: {
+      value:0.8
+    },
+    uThickness:{
+      value:0.3
+    },
+    uColor:{
+      value: Vector(0.5,0.5,0.5)
+    }
+}
+
+uniform float time;
+uniform mat4 uMatrix;
+uniform float uFeather;
+uniform float uThickness;
+uniform sampler2D uRamp;
+uniform vec3 uColor;
+
+dissolve_factory = (uniforms)=>{
+  dissolve_material = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: _VS,
+      fragmentShader: _FS,
+      // blending: THREE.CustomBlending,
+      // blendEquation: THREE.AddEquation,
+      // blendSrc: THREE.OneFactor,
+      // blendDst: THREE.OneMinusSrcAlphaFactor,
+      depthTest: true,
+      depthWrite: false,
+      transparent: true,
+      vertexColors: true
+  });
+  return dissolve_material
+}
+export {dissolve_factory}

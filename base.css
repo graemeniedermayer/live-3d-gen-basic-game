@@ -1,0 +1,160 @@
+
+@import url(https://fonts.googleapis.com/css?family=Quicksand);
+body .dg li.title,
+body .dg li:not(.folder),
+body .dg.main .close-button {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#threejs{
+  position:absolute;
+  z-index: -1;
+}
+
+#ip_form{
+  z-index:3;
+  pointer-events: none;
+  position:absolute;
+  width:100%;
+  height:100%;
+  display: grid;
+    grid-template-columns:  3fr 1fr 3fr;
+    grid-template-rows: 3fr 1fr 3fr;
+    gap: 10px;
+    grid-auto-rows: 200px;
+    grid-template-areas:
+        ". . ."
+        ". a ."
+        ". . .";
+}
+#div1{
+  pointer-events: all;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  grid-area: a;
+  align-self: center;
+  justify-self: center;
+}
+.title{
+  color: white;
+}
+
+.small{
+  color: white;
+  font-size: 0.7rem;
+  margin: 0 auto;
+  display: block;
+}
+.input{
+  margin: 0 auto;
+  display: block;
+}
+body {
+  overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: #000000;
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+  }
+  
+  .container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  
+  .ui {
+    width: 100%;
+    height: 100%;            
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Odibee Sans', cursive;
+    font-size: 40px;
+  }
+  
+  #controller{
+    position:absolute;
+    /* display:none; */
+    width: 100%;
+    height: 100%;
+  }
+  #movement{
+    position: absolute;
+    /* bottom:50%; */ 
+    bottom: 120px;
+    left: 86px;
+  }
+  #direction{
+    position: absolute;
+    /* bottom:50%; */
+    bottom:10rem;
+    right:20%;
+  }
+
+  #movepad{
+    position: absolute;
+    top: -80px;
+    left: -80px;
+    width: 160px;
+    height: 160px;
+    /* top:  -5rem;
+    right:-5rem;
+    width:  10rem;
+    height: 10rem; */
+    clip-path: circle(50% at 50% 50%);
+  }
+  #movepad-indicator{
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    width: 32px;
+    height: 32px;
+    pointer-events:none;
+    user-select: none;
+    clip-path: circle(50% at 50% 50%);
+  }
+  
+  #action{
+    position: absolute;
+    /* bottom:50%; */
+    bottom: 120px;
+    right: 86px;
+  }
+  #button1{
+    position: absolute;
+    top:  -80px;
+    right:-80px;
+    width:  160px;
+    height: 160px;
+    /* top:  -5rem;
+    right:-5rem;
+    width:  10rem;
+    height: 10rem; */
+    clip-path: circle(50% at 50% 50%);
+  }
+  .controls{
+    background: rgba(255,255,255,0.1);
+    width: 5rem;
+    height: 5rem;
+  }
+  .controls:active{
+    background: rgba(255,255,255,0.3);
+  }
+  @keyframes fadeOut {
+    0% {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    90% {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    100% {
+      opacity: 0.0;
+      visibility: hidden;
+    }
+  }
