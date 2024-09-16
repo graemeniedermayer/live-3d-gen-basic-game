@@ -7,7 +7,6 @@ let checkpoint_values = {
     "cfg_scale": 2.0,
 }
 
-
 let neg_prompt_addons = 'nudity, nude, bare thighs, nfsw'
 // Standard 
 // high jack front and back?
